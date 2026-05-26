@@ -23,7 +23,7 @@ if (!fs.existsSync(SPEC_PATH)) {
 
 const spec = fs.readFileSync(SPEC_PATH, 'utf8');
 
-const TOKEN_LINE = /--([a-z0-9-]+)\s*:\s*([^;\n]+?)\s*;?\s*$/gim;
+const TOKEN_LINE = /^\s*--([a-z0-9-]+)\s*:\s*([^;\n]+?)\s*;?\s*$/gim;
 const tokens = [];
 const seen = new Set();
 
