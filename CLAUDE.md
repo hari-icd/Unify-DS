@@ -1,10 +1,8 @@
-# {{DS Name}} — Prototype Generation System
+# Unify DS — Prototype Generation System
 
 ## 1. What this project is
 
-> Replace this section before starting: product name, prototype purpose, target audience.
-
-{{DS Name}} is a self-sustaining prototype generation system for B2B SaaS screens. Claude generates principle-compliant HTML from a shared design system spec, a human reviews, and approved screens are written into Figma via MCP as real component instances. The audience for the final output is the development team building production applications — they consume specs from Figma Dev Mode. The HTML is the source of truth; Figma is the handoff surface.
+Unify DS is a self-sustaining prototype generation system for B2B SaaS screens. Claude generates principle-compliant HTML from a shared design system spec, a human reviews, and approved screens are written into Figma via MCP as real component instances. The audience for the final output is the development team building production applications — they consume specs from Figma Dev Mode. The HTML is the source of truth; Figma is the handoff surface.
 
 ## 2. Before every task
 
