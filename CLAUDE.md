@@ -4,6 +4,16 @@
 
 Unify DS is a self-sustaining prototype generation system for B2B SaaS screens. Claude generates principle-compliant HTML from a shared design system spec, a human reviews, and approved screens are written into Figma via MCP as real component instances. The audience for the final output is the development team building production applications — they consume specs from Figma Dev Mode. The HTML is the source of truth; Figma is the handoff surface.
 
+### Default brief context
+
+Unless a brief overrides these explicitly, assume:
+
+- **Domain:** B2B SaaS enterprise. Other domains may appear — handle them on their own terms when they do, but default to enterprise patterns.
+- **Primary users:** technical (admins, power users, operators, integrators). Engineered so non-technical users can still navigate without friction — clear labels, no unexplained jargon, recoverable mistakes.
+- **Action hierarchy:** most screens carry multiple meaningful actions. **Do not collapse to a single CTA.** Establish deliberate weight: one dominant primary, one or two secondaries, the rest tertiary or in overflow menus. Hierarchy comes from treatment (filled vs ghost, color, position, isolation), not from removing actions.
+- **Data shape:** enterprise-realistic — users, roles, permissions, orgs/tenants, contracts, billing, integrations, audit logs, workflows, tickets, API keys, SLAs, usage metrics, compliance artefacts.
+- **Registry bootstrap:** REGISTRY.md stays empty until a component repeats across multiple screens. Improvise components from tokens for early screens; flag everything as `<!-- NEW: ... -->`; promote to REGISTRY only after the same pattern shows up enough to justify it.
+
 ## 2. Before every task
 
 1. Read REGISTRY.md — component selection source
@@ -26,6 +36,14 @@ Unify DS is a self-sustaining prototype generation system for B2B SaaS screens. 
 - No lorem ipsum — use realistic product-appropriate content
 - Viewport: 1440px fixed
 
+### Icons
+
+- **Source:** [Lucide](https://lucide.dev) for every icon need. Never mix icon libraries (no Heroicons, Feather, Material Symbols, custom SVG).
+- **Format:** inline the SVG markup directly in the HTML. Never use the Lucide CDN script (`<script src="…lucide…">`) or icon-font approach — Figma MCP doesn't execute JS, so JS-rendered icons land in Figma as empty placeholders.
+- **Attribution:** every icon `<svg>` carries `data-icon="lucide:icon-name"` (e.g. `data-icon="lucide:search"`). Used by the Figma write path to match icons and by REGISTRY.md when an icon pattern repeats.
+- **Sizing:** 16px (sm — inside inputs, dense tables), 20px (md — buttons, nav items), 24px (lg — page-level affordances). Set via `width`/`height` SVG attributes, not CSS — Figma reads dimensions from the SVG.
+- **Stroke:** keep Lucide default `stroke-width="1"` unless the brief calls for a lighter weight. Color via `stroke="currentColor"` so it inherits from the parent text colour token.
+
 ## 4. Component selection rules
 
 *Populated after Step 5 (registry bootstrap). Format:*
@@ -37,7 +55,7 @@ Unify DS is a self-sustaining prototype generation system for B2B SaaS screens. 
 ## 5. Anti-patterns
 
 - Do not use `alert` for success messages that can auto-dismiss
-- Do not put two primary actions in the same scope
+- Do not put two **equally-weighted** primary actions in the same scope — multiple actions are fine, but exactly one must dominate visually
 - Do not use a table for small key-value details
 - Do not invent one-off patterns when a registry component exists
 - Do not select from DS-COMPONENTS.md directly — it is verification only
