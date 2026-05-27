@@ -127,7 +127,39 @@ For all other component needs (Buttons, Inputs, Tabs, Headers, Tables, Modals, e
 - Use for Figma MCP write only
 - Never commit `/exports`
 
-## 8. Delivery convention
+## 8. Visual conventions (from the existing product)
+
+Defaults observed in the live Unify Platform. Override only if a brief explicitly differs.
+
+### Typography
+- **Page titles and product/brand names:** Spectral, semibold (`--text-display-sm` or `--text-display-xs` depending on weight of the page). Not Geist.
+- Section headings, body, labels, controls, breadcrumbs, helper text: Geist.
+
+### Page chrome
+- **Breadcrumb** on every interior page — small, `--color-text-tertiary`.
+- **Page header pattern** = title row + tab subnav directly underneath.
+- **Brand identity in headers** = product logo + serif name (e.g. "Nutshell" with its mark). Avoid the brand-filled-square-with-icon badge — that was a one-off, not the product convention.
+- **Header right-side action order:** search (if relevant) → secondary actions → exactly one primary CTA → overflow icon.
+
+### Layout by screen type
+- **Tables / monitoring:** dense rows (32–36 px), low-chrome toolbar above the table (`Filter · Sort · Group · Date Filter · Hide Fields · Color · Summary · …` — text+icon buttons, no background). Status as small pills. Tight column hairlines.
+- **Settings / detail:** two-column body — primary content left, docs/help/instructions panel right. Generous whitespace.
+- **Power-user views (eval traces, logs, etc.):** three-column tolerated — list + detail + viewer.
+
+### Forms
+- Row layout, not stacked: **label (bold) + helper text (tertiary) on the LEFT, control on the right** of the same row. Hairline between rows inside a card.
+- Toggles for boolean settings — brand-olive when on.
+
+### Color discipline
+- Brand olive: dominant CTA + active states + brand identity. Nowhere else.
+- Status colors (`utility-success-*` / `utility-warning-*` / `utility-error-*`): pills and inline indicators only. Never page-level backgrounds.
+- Default to gray-scale. The product is restrained — decoration earns its place.
+
+### Dark mode
+- The product supports dark mode. SPEC.md currently only has light tokens.
+- If a brief asks for dark, stop and flag the token gap. Do not invent dark values.
+
+## 9. Delivery convention
 
 After generating or editing a screen, reply with a tight summary in this shape — no more, no less:
 
