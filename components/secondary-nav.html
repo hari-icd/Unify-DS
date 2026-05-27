@@ -1,0 +1,25 @@
+<!-- Component: Secondary navigation (core, shell)
+     Registry: see REGISTRY.md
+     Props:
+       type        — Settings | Copilot | Projects (Figma variant)
+       layer_name  — Figma layer name to apply to this instance (e.g. ConfigSidebar)
+       aria_label  — accessibility label for the nav landmark
+     Slot:
+       Place <a class="snav-item">...</a> elements inside the include tag.
+       Item styles for .snav-item are provided below — items remain authored in screens
+       so each screen can pick its own labels, icons, and selection.
+-->
+<style>
+.snav{display:flex;flex-direction:column;gap:var(--spacing-xxs)}
+.snav-item{display:flex;align-items:center;gap:var(--spacing-lg);padding:var(--spacing-md) var(--spacing-lg);border-radius:var(--radius-md);font-size:var(--text-md);font-weight:var(--weight-medium);color:var(--color-text-secondary);transition:background 120ms ease,color 120ms ease;cursor:pointer;text-decoration:none}
+.snav-item .ico{color:var(--color-text-tertiary);display:grid;place-items:center;flex-shrink:0}
+.snav-item:hover{background:var(--utility-gray-50);color:var(--color-text-primary)}
+.snav-item:hover .ico{color:var(--color-text-secondary)}
+.snav-item[aria-current="page"]{background:var(--utility-brand-50);color:var(--utility-brand-700)}
+.snav-item[aria-current="page"] .ico{color:var(--utility-brand-600)}
+.snav-item .chev{margin-left:auto;color:var(--color-text-tertiary)}
+.snav .lucide{stroke:currentColor;fill:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:round}
+</style>
+<aside class="snav" data-component="Secondary navigation/Type={{type}}" data-figma-name="Nav/{{?layer_name}}{{layer_name}}{{:}}SecondaryNav{{/?}}" aria-label="{{aria_label}}">
+{{slot}}
+</aside>

@@ -1,38 +1,86 @@
 # Unify DS — Prototype Generation System
 
-A Claude-Code-driven loop for turning briefs into design-system-compliant screens, with a human gate between generation and Figma write.
+A Claude-Code-driven loop for turning briefs into DS-compliant screens, with a human gate between generation and Figma write.
 
-## The loop
+---
+
+## Workflow
 
 ```
-Brief → Claude generates HTML → Human gate → export.js → use_figma writes to Figma → Dev inspects in Dev Mode
+1. You brief   →   2. Claude generates   →   3. You preview   →   4. You triage NEWs   →   5. You ship
+                                                  ↑                      ↓
+                                                  └── iterate if needed ─┘
 ```
 
-The HTML is the source of truth. Figma is the handoff surface. Devs consume specs from Figma Dev Mode.
+Each step is one action or one command. Iterate at step 3 if the preview is off; otherwise straight through.
 
-## Usage
+### 1. You brief
 
-1. Brief Claude with a screen description.
-2. Claude reads `CLAUDE.md`, `SPEC.md`, `REGISTRY.md`, `DS-COMPONENTS.md` automatically.
-3. Output lands in `/screens/[name].html` — minified, references `tokens.css` via `<link>`, every component carries `data-component` and `data-figma-name`.
-4. Review the HTML in a browser. Approve or reject.
-5. Run `node scripts/export.js screens/[name].html` to produce a standalone version in `/exports/`.
-6. Feed the standalone file to `use_figma` — components resolve via `search_design_system` and land as real instances.
+Paste this template. Fill in what you know — leave the rest to CLAUDE.md defaults.
 
-## Benefits
+```
+Screen name:   kebab-case-id
+Type:          form | table | dashboard | detail | empty | modal | other
+User:          (default per CLAUDE.md — override only if unusual)
+Primary path:  the dominant action and how it gets done
+Data:          fields / columns / KPIs the screen handles
+Notes:         visual reference, variant constraints, copy, anything unusual
+```
 
-- **One source of truth.** SPEC.md drives `tokens.css`; tokens.css drives every screen. No drift.
-- **Principle-compliant by default.** The `design-builder` skill runs a layout/contrast/typography checklist before producing HTML.
-- **Real Figma components, not flat frames.** The write path resolves DS component names to live instances — Dev Mode reads correct specs out of the box.
-- **NEW component flagging.** Anything outside the registry is flagged inline (`<!-- NEW: ... -->`) — no silent invention.
-- **Decisions are durable.** `DECISIONS.md` captures every non-obvious call so we don't re-litigate them.
-- **Reusable as a template.** The `template` branch is DS-agnostic — clone, swap one paragraph in CLAUDE.md, run Step 2 against a new Figma file, and you have a new system.
+If a brief leaves a blocking unknown, Claude asks **one** question — never a list.
+
+### 2. Claude generates
+
+Screen lands at `screens/[name].html`. Claude replies with a tight summary:
+
+- file path
+- top 3 judgment calls (with the principle cited)
+- NEW components flagged for triage
+- which `core` components were pulled in via `<unify-include>`
+
+Claude does **not** run export or write to Figma in the same turn.
+
+### 3. Preview opens automatically
+
+A `PostToolUse` hook in `.claude/settings.json` watches `Write`/`Edit` on `screens/*.html` and runs `scripts/preview.js` for you — composes includes, inlines tokens, opens the result in your default browser. No command to run.
+
+If something's off, reply with what to change. Claude edits the working file; the hook re-fires; the browser tab refreshes.
+
+(Manual fallback if the hook isn't active: `node scripts/preview.js [name]`.)
+
+### 4. You triage NEW components
+
+Each `<!-- NEW: ComponentName -->` at the top of the screen needs a decision:
+
+| Decision | When | Action |
+|---|---|---|
+| **Skip** | One-off pattern | Leave inline, no registry entry |
+| **Promote to `on-demand`** | Pattern might repeat | Add entry to REGISTRY.md |
+| **Promote to `core`** | Pattern must repeat exactly | Registry entry + create `/components/[name].html` |
+
+30-second decision per flag, most of the time.
+
+### 5. You ship to Figma
+
+When the HTML is approved, `use_figma` writes the standalone export. `search_design_system` resolves `data-component` names to component instances; `data-figma-name` becomes the layer name in Dev Mode.
+
+Claude runs this when you say go.
+
+---
+
+## When things go off-script
+
+- **Token missing from SPEC.md** — Claude stops and asks. Never invents values.
+- **Brief conflicts with REGISTRY.md** (e.g. asks for a custom rail when one is registered) — Claude asks before generating.
+- **Visual hierarchy is ambiguous** — Claude applies CLAUDE.md defaults and surfaces the call in the delivery summary + DECISIONS.md.
+- **SPEC.md changed** — run `node scripts/generate-tokens.js` first; preview will error clearly if `tokens.css` is stale.
+
+---
 
 ## What this is NOT for
 
-- **Not a production code generator.** HTML here is prototype-grade. It optimises for visual fidelity and dev-handoff clarity, not bundle size, accessibility tree perfection, or runtime performance.
-- **Not a Storybook replacement.** No component sandbox, no isolated state matrices.
-- **Not a token pipeline for production CSS.** `tokens.css` is for the prototypes — production apps should consume tokens from their own DS package.
-- **Not a self-running system.** Nothing goes to Figma without a human approving the HTML first. The gate is permanent.
-- **Not a general design wiki.** REGISTRY.md tracks active components only. DS-COMPONENTS.md is a lookup table, not a usage guide.
-- **Not for FigJam, Slides, or Make files.** The Figma write path is design-mode only.
+- Not a production code generator — HTML is prototype-grade, optimised for visual fidelity and dev handoff
+- Not a Storybook replacement — no component sandbox
+- Not a token pipeline for production CSS — `tokens.css` is for the prototypes only
+- Not self-running — the human gate at preview is permanent
+- Not for FigJam, Slides, or Make files — design-mode only

@@ -46,11 +46,52 @@ Unless a brief overrides these explicitly, assume:
 
 ## 4. Component selection rules
 
-*Populated after Step 5 (registry bootstrap). Format:*
+Two `core` components exist in REGISTRY.md today. **When a screen needs either, use the exact Figma name — never improvise an alternative or rename.**
 
-| Need | Use | Avoid |
-|------|-----|-------|
-| _(empty until REGISTRY.md is bootstrapped from real screens)_ | | |
+| Need | Use (data-component) | Avoid |
+|------|----------------------|-------|
+| Left primary icon rail (56–68 px wide) | `LC_Sidebar Navigation_Icon Only` | Custom rail; using a base unit standalone |
+| Left primary sidebar, wide w/ labels (framed) | `LC_Sidebar Navigation_Framed` | Mixing with Stroke variant in same app |
+| Left primary sidebar, wide w/ labels (stroke) | `LC_Sidebar Navigation_Stroke` | Mixing with Framed variant in same app |
+| Top header bar | `LC_Header Navigation` | Custom header bar |
+| Mobile / tablet bottom bar | `LC_Bottom Navigation` | Custom bottom bar |
+| Secondary side nav (sub-config) | `Secondary navigation` | Reusing primary sidebar at sub-scope |
+| Tertiary in-page nav | `Tertiary navigation` | Tabs (use Tabs for tabbed sections) |
+| Full platform-level nav | `New_Platform Navigation` | Hand-rolling project/sub-menu structures |
+| Tenant switcher | `Tentant Switcher` *(Figma spelling)* | Custom org switcher |
+| Selectable row, bordered/elevated | `List Item Cardified` | `Table` (only for tabular data) |
+| Selectable row, flat (inside a container) | `List Item` | Custom row patterns |
+| Vertical selection tile | `List Item Cardified — Vertical` | Custom card grids |
+
+**Variant syntax:** address variants exactly as Figma does — comma-separated `Key=Value` after a slash. Example: `data-component="List Item Cardified/Size=md, Type=Checkbox, Selected=False, State=Default"`. The full variant axes are in REGISTRY.md.
+
+**Layer name vs component name:**
+- `data-component` = the exact Figma component name from REGISTRY.md (used by `search_design_system` at write-time)
+- `data-figma-name` = the Figma layer name in `Category/Name` format you want the placed instance to have
+
+**Core components live in `/components/` and are referenced, not inlined.** Each `core` registry entry has a corresponding `/components/[name].html` file. Screens pull them in with:
+
+```html
+<unify-include name="primary-rail" active="home"></unify-include>
+```
+
+Shell components (variable content) accept slotted children:
+
+```html
+<unify-include name="secondary-nav" type="Settings" layer_name="ConfigSidebar" aria_label="Configuration sections">
+  <a class="snav-item" aria-current="page" data-component="Settings_Nav item base/Current=True, State=Default, Type=Main" data-figma-name="Nav/ConfigItem">Instructions</a>
+  ...more items...
+</unify-include>
+```
+
+`scripts/export.js` runs `compose()` first (flattens includes) then inlines `tokens.css`. The working file shows blank where includes are — preview by running export and opening the standalone file in `/exports/`.
+
+Component file conventions:
+- Each component owns its own `<style>` block (do not re-declare component CSS in screens)
+- All values use `var(--token-name)` — same token rules as screens
+- `{{var}}`, `{{?cond==val}}A{{:}}B{{/?}}` ternary, `{{slot}}` — full syntax in `scripts/lib/compose.js`
+
+For all other component needs (Buttons, Inputs, Tabs, Headers, Tables, Modals, etc.) — improvise inline in the screen, flag as `<!-- NEW: ... -->`, and let the registry + `/components/` grow from observed repetition.
 
 ## 5. Anti-patterns
 
@@ -85,3 +126,18 @@ Unless a brief overrides these explicitly, assume:
 - Output: `/exports/[filename].standalone.html`
 - Use for Figma MCP write only
 - Never commit `/exports`
+
+## 8. Delivery convention
+
+After generating or editing a screen, reply with a tight summary in this shape — no more, no less:
+
+1. **File** — path to the working screen
+2. **Top 3 judgment calls** — one line each, principle cited (e.g. "Publish dominates Preview — Von Restorff")
+3. **NEWs flagged** — comma-separated component names; mark `(in DS)` for those already in Figma but unregistered
+4. **Core components used** — names of any `<unify-include>`s pulled in
+
+**Preview opens automatically** via a `PostToolUse` hook (`.claude/settings.json`) that watches `Write`/`Edit` on `screens/*.html` and runs `scripts/preview.js`. Do not run `preview.js` manually — the hook handles it.
+
+Do NOT run `use_figma` in the same turn as generation. The Figma write gate is permanent — wait for explicit go.
+
+When a brief is incomplete: ask **one** question — the most blocking unknown — never a list.

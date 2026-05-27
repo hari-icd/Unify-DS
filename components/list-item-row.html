@@ -1,0 +1,29 @@
+<!-- Component: List Item Cardified (core, shell)
+     Registry: see REGISTRY.md
+     Props:
+       size      — md | sm                                       (default: md)
+       type      — Icon simple | Radio button | Checkbox         (default: Icon simple)
+       selected  — True | False                                  (default: False)
+       state     — Default | Hover | Focused | Disabled          (default: Default)
+       layer_name — optional Figma layer name override            (default: ListItem/Row)
+     Slot:
+       Place the row's content inside the include tag — affordance on the left
+       (checkbox/radio/icon), label/description text, and any trailing controls.
+       The shell only provides the outer wrapper + chrome.
+
+     For the flat (non-cardified) variant or vertical tile variant,
+     create a separate component (list-item.html / list-item-vertical.html).
+-->
+<style>
+.lic{display:flex;align-items:center;gap:var(--spacing-lg);padding:var(--spacing-lg) var(--spacing-xl);background:var(--color-bg-primary);border:1px solid var(--color-border-secondary);border-radius:var(--radius-md);transition:background 120ms ease,border-color 120ms ease,box-shadow 120ms ease;cursor:pointer}
+.lic-sm{padding:var(--spacing-md) var(--spacing-xl)}
+.lic:hover,.lic[data-state="Hover"]{background:var(--utility-gray-25);border-color:var(--color-border-primary)}
+.lic:focus-visible,.lic[data-state="Focused"]{outline:none;border-color:var(--utility-brand-300);box-shadow:var(--focus-ring-brand)}
+.lic[data-selected="True"]{border-color:var(--utility-brand-500);background:var(--utility-brand-25)}
+.lic[data-state="Disabled"]{opacity:.5;cursor:not-allowed;pointer-events:none}
+.lic+.lic{margin-top:var(--spacing-md)}
+.lic .lucide{stroke:currentColor;fill:none;stroke-width:1;stroke-linecap:round;stroke-linejoin:round}
+</style>
+<div class="lic lic-{{?size==sm}}sm{{:}}md{{/?}}" data-component="List Item Cardified/Size={{?size}}{{size}}{{:}}md{{/?}}, Type={{?type}}{{type}}{{:}}Icon simple{{/?}}, Selected={{?selected}}{{selected}}{{:}}False{{/?}}, State={{?state}}{{state}}{{:}}Default{{/?}}" data-figma-name="{{?layer_name}}{{layer_name}}{{:}}ListItem/Row{{/?}}" data-selected="{{?selected}}{{selected}}{{:}}False{{/?}}" data-state="{{?state}}{{state}}{{:}}Default{{/?}}"{{?state==Disabled}} aria-disabled="true"{{:}}{{/?}} role="option" aria-selected="{{?selected==True}}true{{:}}false{{/?}}">
+{{slot}}
+</div>

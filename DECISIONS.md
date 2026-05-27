@@ -78,3 +78,42 @@ These are inconsistencies observed in the Figma `get_variable_defs` output. None
 - **Z-index scale:** no `z-*` tokens. Likely fine — Figma doesn't model layering. We'll define a small `z-1 / z-modal / z-tooltip` set in CSS if/when needed.
 
 ---
+
+## 2026-05-26 — Core components extracted to /components/ + compose engine
+
+**Decision:** `core` registry components now live as self-contained HTML fragments under `/components/` and are pulled into screens via `<unify-include name="..."></unify-include>`. `scripts/export.js` runs a `compose()` pass before inlining `tokens.css`.
+
+**Reason:**
+- Plan already provisioned `/components/` with the rule "promoted here at core status only" — this implements that rule.
+- Single source of truth: change the primary rail in one file, every screen using it updates.
+- The existing screen dropped ~30% in working-file size (28KB → 19KB) by lifting the rail to a component.
+- `data-component` variant strings (`Current=True, State=Selected` vs `Current=False, State=Default`) are now computed by the component from a single prop — no per-item duplication of variant logic.
+
+**Rejected:**
+- **Native Web Components / `<template>` + customElements** — require JS at runtime; Figma MCP doesn't execute JS, so the write path would land empty placeholders.
+- **Client-side `fetch` of fragments** — same JS-execution problem.
+- **Server-side includes via a dev server** — adds a process to manage; the export-time compose covers both Figma write and reviewable output.
+- **A full template engine (Handlebars, EJS)** — overkill for ~3 components today; the 60-line mini-engine handles `{{var}}`, `{{?cond}}A{{:}}B{{/?}}` ternary, `{{#if}}{{/if}}` blocks, and `{{slot}}` cleanly. Upgradable if it ever stops being enough.
+
+**Component shapes — two kinds:**
+- **Full components** (fixed content, parameterised): `primary-rail.html` — the 12 nav items are fixed across screens; only the `active` item varies. Drop in with `<unify-include name="primary-rail" active="home"></unify-include>`.
+- **Shell components** (variable content): `secondary-nav.html`, `list-item-row.html` — outer chrome + data-component variant addressing live in the component; screens provide the inner items via the slot. Author chrome once, vary content per screen.
+
+**Trade-off accepted:**
+- Working HTML no longer renders correctly in a browser without running export first — `<unify-include>` is an unknown element that renders empty. Review now flows through `/exports/[name].standalone.html`. A live preview script is a possible follow-up but not built yet.
+
+**Pipeline order:**
+1. `node scripts/export.js screens/foo.html`
+2. `compose()` flattens every `<unify-include>` against `/components/*.html` with prop + slot substitution
+3. `tokens.css` is inlined into a `<style>` block, replacing the `<link>` tag
+4. Output to `/exports/foo.standalone.html` — this is the only artifact `use_figma` should ever see
+
+**Files added:**
+- `scripts/lib/compose.js` — engine (~60 lines, zero deps)
+- `components/primary-rail.html` — full component, `active` prop
+- `components/secondary-nav.html` — shell, `type` / `layer_name` / `aria_label` props + slot
+- `components/list-item-row.html` — shell, full variant prop matrix + slot
+
+**Files updated:**
+- `scripts/export.js` — now calls `compose()` before token inlining
+
